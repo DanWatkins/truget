@@ -5,4 +5,7 @@
     <LangVersion>8</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NuGet.Packaging" Version="5.4.0" />
+  </ItemGroup>
 </Project>
