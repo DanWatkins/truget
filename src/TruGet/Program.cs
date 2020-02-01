@@ -7,10 +7,10 @@ namespace TruGet
     {
         public static async Task Main(string[] args)
         {
-            const string path = @"C:\Users\dwatk\Desktop\avalonia.0.9.2.nupkg";
-            const string output = @"C:\Users\dwatk\Desktop\avalonia.0.9.2.nupkg.dependencies\";
+            const string repositoryPath = @"C:\Users\dwatk\code\realityfocus-forks\Avalonia";
+
+            await new DependencyIdentifier().Run(repositoryPath);
             
-            await new PackageHarvester().RunAsync(path, output);
             Console.WriteLine("DONE");
         }
     }
