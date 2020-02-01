@@ -8,8 +8,17 @@ namespace TruGet
         public static async Task Main(string[] args)
         {
             const string repositoryPath = @"C:\Users\dwatk\code\realityfocus-forks\Avalonia";
+            const string outputPath = @"C:\Users\dwatk\Desktop\avalonia-dependencies";
+            
+            var dependencies = await new PackageDependencyIdentifier().RunAsync(repositoryPath);
 
-            await new DependencyIdentifier().Run(repositoryPath);
+            foreach (var dependency in dependencies)
+            {
+                Console.WriteLine($"{dependency.Id}-{dependency.Version}");
+
+                var path = await new PackageDownloader().DownloadIfNeededAsync(dependency, outputPath);
+                await new PackageHarvester().RunAsync(path, outputPath);
+            }
             
             Console.WriteLine("DONE");
         }

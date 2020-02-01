@@ -39,26 +39,22 @@ namespace TruGet
             {
                 foreach (var package in group.Packages)
                 {
-                    var version = package.VersionRange.ToShortString();
-                    var url = $"https://www.nuget.org/api/v2/package/{package.Id}/{version}";
-                    var filename = $"{package.Id}.{version}.nupkg";
-                    var outputFilepath = Path.Combine(outputPath, filename);
+                    var packageDependency = new PackageDependency(
+                        package.Id,
+                        package.VersionRange.ToShortString());
 
                     try
                     {
-                        if (!File.Exists(outputFilepath))
-                        {
-                            Console.WriteLine($"{packageFilename} GET {url}");
-                            await new WebClient().DownloadFileTaskAsync(url, outputFilepath);
-                        }
+                        var outputFilepath = await new PackageDownloader().DownloadIfNeededAsync(
+                            packageDependency,
+                            outputPath);
+
+                        await RunAsync(outputFilepath, outputPath);
                     }
                     catch (WebException wex)
                     {
                         Console.WriteLine($"ERROR: {wex.Message}");
-                        return;
                     }
-
-                    await RunAsync(outputFilepath, outputPath);
                 }
             }
         }
