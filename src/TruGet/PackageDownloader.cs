@@ -15,7 +15,7 @@ namespace TruGet
 
             if (!File.Exists(outputFilepath))
             {
-                Console.WriteLine($"{filename} GET {url}");
+                Console.WriteLine($" {filename} GET {url}");
                 await new WebClient().DownloadFileTaskAsync(url, outputFilepath);
             }
 

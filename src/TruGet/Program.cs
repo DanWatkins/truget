@@ -14,7 +14,7 @@ namespace TruGet
 
             foreach (var dependency in dependencies)
             {
-                Console.WriteLine($"{dependency.Id}-{dependency.Version}");
+                Console.WriteLine($"[{dependency.Id}-{dependency.Version}]");
 
                 var path = await new PackageDownloader().DownloadIfNeededAsync(dependency, outputPath);
                 await new PackageHarvester().RunAsync(path, outputPath);

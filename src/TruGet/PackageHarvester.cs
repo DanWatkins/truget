@@ -41,7 +41,7 @@ namespace TruGet
                 {
                     var packageDependency = new PackageDependency(
                         package.Id,
-                        package.VersionRange.ToShortString());
+                        package.VersionRange);
 
                     try
                     {

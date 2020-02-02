@@ -1,4 +1,6 @@
-﻿namespace TruGet
+﻿using NuGet.Versioning;
+
+namespace TruGet
 {
     public class PackageDependency
     {
@@ -6,6 +8,18 @@
         {
             Id = id;
             Version = version;
+        }
+
+        public PackageDependency(string id, VersionRange versionRange)
+        {
+            Id = id;
+
+            if (versionRange.HasUpperBound)
+                Version = versionRange.MaxVersion.ToString();
+            else if (versionRange.HasLowerBound)
+                Version = versionRange.MinVersion.ToString();
+            else
+                Version = versionRange.ToShortString();
         }
 
         public string Id { get; }
