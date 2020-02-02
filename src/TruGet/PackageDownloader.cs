@@ -1,7 +1,13 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Common;
+using NuGet.Configuration;
+using NuGet.Protocol.Core.Types;
+using NuGet.Protocol.VisualStudio;
 
 namespace TruGet
 {
@@ -20,6 +26,42 @@ namespace TruGet
             }
 
             return outputFilepath;
+        }
+
+        public async Task<string> DownloadLatestVersionIfNeededAsync(string packageId, string outputPath)
+        {
+            var visStudio = Repository.Provider.GetVisualStudio();
+            var packageSource = new PackageSource("https://api.nuget.org/v3/index.json");
+            var sourceRepository = Repository.CreateSource(visStudio, packageSource);
+            var packageSearchResource = await sourceRepository.GetResourceAsync<PackageSearchResource>();
+
+            var results = (await packageSearchResource.SearchAsync(
+                    packageId,
+                    new SearchFilter(false),
+                    0,
+                    1,
+                    NullLogger.Instance,
+                    CancellationToken.None))
+                .ToList();
+
+            if (results.Count == 0)
+            {
+                Console.WriteLine($"ERROR: Package {packageId} was not found from source {packageSource}.");
+                return null;
+            }
+
+            var packageMetadata = results[0];
+
+            if (!string.Equals(packageMetadata.Identity.Id, packageId, StringComparison.CurrentCultureIgnoreCase))
+            {
+                Console.WriteLine(
+                    $"ERROR: Package {packageId} was not found from source {packageSource}. Best match was {packageMetadata.Identity.Id}.");
+                return null;
+            }
+
+            return await DownloadIfNeededAsync(
+                new PackageDependency(packageMetadata.Identity.Id, packageMetadata.Identity.Version.OriginalVersion),
+                outputPath);
         }
     }
 }
