@@ -9,7 +9,7 @@ namespace TruGet
             Id = id;
             Version = version;
         }
-
+        
         public PackageDependency(string id, VersionRange versionRange)
         {
             Id = id;
@@ -20,6 +20,12 @@ namespace TruGet
                 Version = versionRange.MinVersion.ToString();
             else
                 Version = versionRange.ToShortString();
+        }
+
+        public PackageDependency(string id, NuGetVersion version)
+        {
+            Id = id;
+            Version = version.ToNormalizedString();
         }
 
         public string Id { get; }

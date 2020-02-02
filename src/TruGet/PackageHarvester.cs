@@ -18,44 +18,51 @@ namespace TruGet
                 return;
             _packagesChecked.Add(packageFilename);
 
-            using var zipFile = ZipFile.OpenRead(packageFilepath);
-
-            var nuspec = zipFile.Entries
-                .SingleOrDefault(e => e.FullName.EndsWith(".nuspec"));
-
-            if (nuspec == null)
+            try
             {
-                Console.WriteLine($"ERROR: Package {zipFile.ToString()} does not contain a nuspec file.");
-                return;
-            }
+                using var zipFile = ZipFile.OpenRead(packageFilepath);
 
-            Directory.CreateDirectory(outputPath);
+                var nuspec = zipFile.Entries
+                    .SingleOrDefault(e => e.FullName.EndsWith(".nuspec"));
 
-            await using var stream = nuspec.Open();
-            var reader = new NuspecReader(stream);
-            var groups = reader.GetDependencyGroups().ToList();
-
-            foreach (var group in groups)
-            {
-                foreach (var package in group.Packages)
+                if (nuspec == null)
                 {
-                    var packageDependency = new PackageDependency(
-                        package.Id,
-                        package.VersionRange);
+                    Console.WriteLine($"ERROR: Package {zipFile.ToString()} does not contain a nuspec file.");
+                    return;
+                }
 
-                    try
-                    {
-                        var outputFilepath = await new PackageDownloader().DownloadIfNeededAsync(
-                            packageDependency,
-                            outputPath);
+                Directory.CreateDirectory(outputPath);
 
-                        await RunAsync(outputFilepath, outputPath);
-                    }
-                    catch (WebException wex)
+                await using var stream = nuspec.Open();
+                var reader = new NuspecReader(stream);
+                var groups = reader.GetDependencyGroups().ToList();
+
+                foreach (var group in groups)
+                {
+                    foreach (var package in group.Packages)
                     {
-                        Console.WriteLine($"ERROR: {wex.Message}");
+                        var packageDependency = new PackageDependency(
+                            package.Id,
+                            package.VersionRange);
+
+                        try
+                        {
+                            var outputFilepath = await new PackageDownloader().DownloadIfNeededAsync(
+                                packageDependency,
+                                outputPath);
+
+                            await RunAsync(outputFilepath, outputPath);
+                        }
+                        catch (WebException wex)
+                        {
+                            Console.WriteLine($"ERROR: {wex.Message}");
+                        }
                     }
                 }
+            }
+            catch (InvalidDataException)
+            {
+                Console.WriteLine($"ERROR: Could read file as zip archive: {packageFilepath}.");
             }
         }
 

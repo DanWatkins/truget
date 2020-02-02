@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace TruGet
@@ -57,21 +58,28 @@ namespace TruGet
             {
                 Console.WriteLine($"[{package.Item1}]");
 
-                string filepath = null;
+                List<string> filepaths;
 
                 if (!string.IsNullOrEmpty(package.Item2))
                 {
-                    filepath = await new PackageDownloader().DownloadIfNeededAsync(
+                    var filepath = await new PackageDownloader().DownloadIfNeededAsync(
                         new PackageDependency(package.Item1, package.Item2), outputPath);
+                    filepaths = new List<string> {filepath};
                 }
                 else
                 {
-                    filepath = await new PackageDownloader().DownloadLatestVersionIfNeededAsync(package.Item1,
+                    filepaths = await new PackageDownloader().DownloadAllVersionsIfNeededAsync(package.Item1,
                         outputPath);
                 }
 
-                await new PackageHarvester().RunAsync(filepath, outputPath);
+                foreach (var filepath in filepaths)
+                {
+                    Console.WriteLine(filepath);
+                    await new PackageHarvester().RunAsync(filepath, outputPath);
+                }
             }
+
+            await new PackageDownloader().DownloadAllMicrosoft();
 
             Console.WriteLine("DONE");
         }

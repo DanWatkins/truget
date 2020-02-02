@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -23,12 +24,15 @@ namespace TruGet
             {
                 Console.WriteLine($" {filename} GET {url}");
                 await new WebClient().DownloadFileTaskAsync(url, outputFilepath);
+
+                // TODO: If file is empty, delete since it was a pulled package. Switch to using WebRequest so stream
+                // TODO: can be measured in memory before writing to disk
             }
 
             return outputFilepath;
         }
 
-        public async Task<string> DownloadLatestVersionIfNeededAsync(string packageId, string outputPath)
+        public async Task<List<string>> DownloadAllVersionsIfNeededAsync(string packageId, string outputPath)
         {
             var visStudio = Repository.Provider.GetVisualStudio();
             var packageSource = new PackageSource("https://api.nuget.org/v3/index.json");
@@ -59,9 +63,44 @@ namespace TruGet
                 return null;
             }
 
-            return await DownloadIfNeededAsync(
-                new PackageDependency(packageMetadata.Identity.Id, packageMetadata.Identity.Version.OriginalVersion),
-                outputPath);
+            var metadataResource = await sourceRepository.GetResourceAsync<MetadataResource>();
+            var versions = await metadataResource.GetVersions(packageId, new SourceCacheContext(), NullLogger.Instance,
+                CancellationToken.None);
+
+            var paths = new List<string>();
+
+            foreach (var version in versions)
+            {
+                if (version.IsPrerelease)
+                {
+                    Console.WriteLine($"Skipping {version.OriginalVersion}");
+                    continue;
+                }
+
+                var path = await DownloadIfNeededAsync(
+                    new PackageDependency(packageMetadata.Identity.Id, version),
+                    outputPath);
+                paths.Add(path);
+            }
+
+            return paths;
+        }
+
+        public async Task DownloadAllMicrosoft()
+        {
+            var visStudio = Repository.Provider.GetVisualStudio();
+            var packageSource = new PackageSource("https://api.nuget.org/v3/index.json");
+            var sourceRepository = Repository.CreateSource(visStudio, packageSource);
+            var packageSearchResource = await sourceRepository.GetResourceAsync<PackageSearchResource>();
+
+            var results = (await packageSearchResource.SearchAsync(
+                    "microsoft",
+                    new SearchFilter(false),
+                    0,
+                    10000,
+                    NullLogger.Instance,
+                    CancellationToken.None))
+                .ToList();
         }
     }
 }
