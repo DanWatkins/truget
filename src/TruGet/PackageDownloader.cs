@@ -20,6 +20,8 @@ namespace TruGet
             var filename = $"{package.Id}.{package.Version}.nupkg";
             var outputFilepath = Path.Combine(outputPath, filename);
 
+            Directory.CreateDirectory(outputPath);
+
             if (!File.Exists(outputFilepath))
             {
                 Console.WriteLine($" {filename} GET {url}");
@@ -72,10 +74,7 @@ namespace TruGet
             foreach (var version in versions)
             {
                 if (version.IsPrerelease)
-                {
-                    Console.WriteLine($"Skipping {version.OriginalVersion}");
                     continue;
-                }
 
                 var path = await DownloadIfNeededAsync(
                     new PackageDependency(packageMetadata.Identity.Id, version),

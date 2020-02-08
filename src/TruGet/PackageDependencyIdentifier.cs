@@ -33,7 +33,7 @@ namespace TruGet
 
         private bool IsPackageReferenceFile(string file)
         {
-            return file.EndsWith(".csproj") || file.EndsWith(".props");
+            return file.EndsWith(".csproj") || file.EndsWith(".props") || file.EndsWith(".proj");
         }
 
         private bool IsPackagesConfigFile(string file)

@@ -8,8 +8,8 @@ namespace TruGet
     {
         public static async Task Main(string[] args)
         {
-            const string repositoryPath = @"C:\Users\dwatk\code\realityfocus-forks\Avalonia";
-            const string outputPath = @"C:\Users\dwatk\code\packages";
+            const string repositoryPath = @"C:\Users\dwatk\Code\RealityFocusForks\Avalonia\";
+            const string outputPath = @"C:\Users\dwatk\Code\RealityFocusForks\Avalonia\.truget\";
 
             var dependencies = await new PackageDependencyIdentifier().RunAsync(repositoryPath);
 
@@ -23,6 +23,8 @@ namespace TruGet
 
             var implicitDepenencies = new[]
             {
+                ("Microsoft.Build.Traversal",""),
+                ("MSBuild.Sdk.Extras", ""),
                 ("Microsoft.NETCore.Targets", "1.1.1"),
                 ("Microsoft.NETCore.App", "2.2.8"),
                 ("Microsoft.NETCore.App", "2.1.15"),
@@ -74,7 +76,6 @@ namespace TruGet
 
                 foreach (var filepath in filepaths)
                 {
-                    Console.WriteLine(filepath);
                     await new PackageHarvester().RunAsync(filepath, outputPath);
                 }
             }
